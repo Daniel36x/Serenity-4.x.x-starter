@@ -1,0 +1,33 @@
+# Gradle
+# Build your Java project and run tests with Gradle using a Gradle wrapper script.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    gradleWrapperFile: '$(System.DefaultWorkingDirectory)/gradlew'
+    tasks: 'clean test'
+    publishJUnitResults: false
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Attestation E2E'
+  inputs:
+    targetPath: '$(System.DefaultWorkingDirectory)/target'
+    artifact: 'E2E Results'
+  condition: always()
+  continueOnError: true   
+
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '$(System.DefaultWorkingDirectory)/build/test-results/test/*.xml'
